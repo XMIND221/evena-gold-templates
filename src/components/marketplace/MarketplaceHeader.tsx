@@ -20,10 +20,16 @@ export function MarketplaceHeader({ query, onQuery }: Props) {
               <p className="text-[9px] tracking-[0.35em] text-gold/80">MARKETPLACE</p>
             </div>
           </Link>
-          <div className="hidden sm:flex items-center gap-3 text-[11px] tracking-[0.25em] text-muted-foreground">
-            <span>SÉNÉGAL</span>
-            <span className="text-gold/60">·</span>
-            <span>AFRIQUE</span>
+          <div className="flex items-center gap-3 text-[11px] tracking-[0.25em] text-muted-foreground">
+            <Link
+              to="/marketplace/explorer"
+              className="rounded-full border border-gold/40 px-3 py-1.5 text-[10px] tracking-[0.3em] text-gold hover:bg-gold/10 transition-colors"
+            >
+              EXPLORER · 15 000
+            </Link>
+            <span className="hidden sm:inline">SÉNÉGAL</span>
+            <span className="hidden sm:inline text-gold/60">·</span>
+            <span className="hidden sm:inline">AFRIQUE</span>
           </div>
         </div>
 
