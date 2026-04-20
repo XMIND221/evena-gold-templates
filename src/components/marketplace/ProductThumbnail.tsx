@@ -89,21 +89,29 @@ const PALETTES = [
 
 type Palette = (typeof PALETTES)[number];
 
+interface Overrides {
+  archetype?: Archetype;
+  palette?: Partial<Palette>;
+  ornament?: "kente" | "bogolan" | "geometric" | "wave" | "dots" | "starburst";
+}
+
 interface Props {
   product: MarketplaceProduct;
   variantSeed?: string; // used in detail page for 10 variants
   className?: string;
+  overrides?: Overrides;
 }
 
-export function ProductThumbnail({ product, variantSeed, className }: Props) {
-  const seedKey = (product.designSeed + (variantSeed ?? "")) as string;
+export function ProductThumbnail({ product, variantSeed, className, overrides }: Props) {
+  const seedKey = (product.designSeed + (variantSeed ?? "") + (overrides ? JSON.stringify(overrides) : "")) as string;
   const { archetype, palette, params } = useMemo(() => {
     const rng = mulberry32(hashSeed(seedKey));
-    const palette = PALETTES[Math.floor(rng() * PALETTES.length)];
-    const archetype = archetypeFor(product);
+    const basePalette = PALETTES[Math.floor(rng() * PALETTES.length)];
+    const palette: Palette = { ...basePalette, ...(overrides?.palette ?? {}) };
+    const archetype = overrides?.archetype ?? archetypeFor(product);
     const params = {
       rotation: range(rng, -3, 3),
-      ornament: pick(rng, ["kente", "bogolan", "geometric", "wave", "dots", "starburst"] as const),
+      ornament: overrides?.ornament ?? pick(rng, ["kente", "bogolan", "geometric", "wave", "dots", "starburst"] as const),
       monogramRot: range(rng, -8, 8),
       r1: rng(),
       r2: rng(),
@@ -112,7 +120,7 @@ export function ProductThumbnail({ product, variantSeed, className }: Props) {
       r5: rng(),
     };
     return { archetype, palette, params };
-  }, [seedKey, product]);
+  }, [seedKey, product, overrides]);
 
   return (
     <div
