@@ -89,10 +89,13 @@ const PALETTES = [
 
 type Palette = (typeof PALETTES)[number];
 
+export type ImageSlotMode = "placeholder" | "demo" | "none";
+
 interface Overrides {
   archetype?: Archetype;
   palette?: Partial<Palette>;
   ornament?: "kente" | "bogolan" | "geometric" | "wave" | "dots" | "starburst";
+  imageSlot?: ImageSlotMode;
 }
 
 interface Props {
