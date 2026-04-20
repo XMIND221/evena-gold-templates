@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { ModelSpec } from "@/evena/models";
+import type { Family, ModelSpec } from "@/evena/models";
 import { ProductThumbnail } from "@/components/marketplace/ProductThumbnail";
 import { EVENA_MARKETPLACE_CATALOG } from "@/data/evenaMarketplaceCatalog";
 import { Badge } from "@/components/ui/badge";
@@ -8,15 +8,66 @@ interface Props {
   model: ModelSpec;
 }
 
+type Archetype =
+  | "invitation-portrait" | "save-the-date" | "ticket-horizontal" | "ticket-mini"
+  | "badge-lanyard" | "badge-round" | "pass-noir-or" | "business-card"
+  | "menu-editorial" | "ceremony-frame" | "boarding-pass" | "promo-poster"
+  | "loyalty-card" | "festival-poster";
+
+const FAMILY_TO_ARCHETYPE: Record<Family, Archetype> = {
+  "invitation-portrait": "invitation-portrait",
+  "invitation-editorial": "menu-editorial",
+  "invitation-frame": "ceremony-frame",
+  "save-the-date": "save-the-date",
+  "ceremony-frame": "ceremony-frame",
+  "festival-poster": "festival-poster",
+  "ticket-horizontal": "ticket-horizontal",
+  "ticket-mini": "ticket-mini",
+  "ticket-stub": "ticket-horizontal",
+  "boarding-pass": "boarding-pass",
+  "badge-lanyard": "badge-lanyard",
+  "badge-round": "badge-round",
+  "badge-square": "badge-lanyard",
+  "pass-noir-or": "pass-noir-or",
+  "pass-foil": "pass-noir-or",
+  "business-card": "business-card",
+  "business-vertical": "business-card",
+  "menu-editorial": "menu-editorial",
+  "menu-bistro": "menu-editorial",
+  "edu-id": "business-card",
+  "edu-diploma": "ceremony-frame",
+  "religion-arabesque": "ceremony-frame",
+  "religion-tabaski": "ceremony-frame",
+  "religion-magal": "ceremony-frame",
+  "sport-ticket": "ticket-horizontal",
+  "sport-pass": "pass-noir-or",
+  "travel-pass": "pass-noir-or",
+  "travel-ticket": "ticket-horizontal",
+  "promo-poster": "promo-poster",
+  "loyalty-card": "loyalty-card",
+  "gift-card": "loyalty-card",
+  "coupon-strip": "ticket-mini",
+};
+
+function motifToOrnament(motif: string): "kente" | "bogolan" | "geometric" | "wave" | "dots" | "starburst" {
+  if (motif.startsWith("kente")) return "kente";
+  if (motif.startsWith("bogolan")) return "bogolan";
+  if (motif.startsWith("wave")) return "wave";
+  if (motif.includes("dot")) return "dots";
+  if (motif.includes("constellation") || motif.includes("seal") || motif.includes("blason")) return "starburst";
+  return "geometric";
+}
+
 /**
- * Carte d'un modèle de l'explorer.
- * Réutilise ProductThumbnail en injectant designSeed dérivé de la variante,
- * pour visualiser la diversité des 15 000 modèles.
+ * Carte de modèle d'explorer.
+ * Force archetype + palette + ornement depuis le ModelSpec
+ * pour révéler la diversité du moteur EVENA.
  */
 export function ExplorerModelCard({ model }: Props) {
   const baseProduct = EVENA_MARKETPLACE_CATALOG[model.productIndex - 1];
-  // Produit "virtuel" pour la variante : on remplace le designSeed pour varier la composition.
   const virtualProduct = { ...baseProduct, designSeed: model.designSeed };
+  const archetype = FAMILY_TO_ARCHETYPE[model.family];
+  const ornament = motifToOrnament(model.motif);
 
   return (
     <Link
@@ -24,8 +75,20 @@ export function ExplorerModelCard({ model }: Props) {
       className="group block rounded-xl border border-border/60 bg-card overflow-hidden transition-all hover:border-primary/40 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.4)]"
       aria-label={`${model.productTitle} – variante ${model.variantIndex + 1}`}
     >
-      <div className="aspect-[3/4] overflow-hidden bg-background">
-        <ProductThumbnail product={virtualProduct} />
+      <div className="aspect-[3/4] overflow-hidden bg-background flex items-center justify-center p-2">
+        <ProductThumbnail
+          product={virtualProduct}
+          overrides={{
+            archetype,
+            ornament,
+            palette: {
+              bg: model.palette.bg,
+              ink: model.palette.ink,
+              gold: model.palette.gold,
+              accent: model.palette.accent,
+            },
+          }}
+        />
       </div>
       <div className="p-3 space-y-2">
         <div className="flex items-start justify-between gap-2">
