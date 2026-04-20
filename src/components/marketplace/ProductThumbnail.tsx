@@ -436,47 +436,69 @@ function InvitationPortrait({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function SaveTheDate({ product, palette, params, monogram }: SubProps) {
+function SaveTheDate({ product, palette, params, monogram, imageSlot }: SubProps) {
   const day = 1 + Math.floor(params.r1 * 28);
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="dots" color={palette.gold} opacity={0.1} />
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r4}
+          className="relative h-[45%] w-full"
+          label="Photo couple"
+        />
+      )}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center px-3 py-2">
         <p className="text-[8px] tracking-[0.4em]" style={{ color: palette.gold }}>SAVE THE DATE</p>
-        <div className="my-2 flex items-end gap-2">
-          <div className="font-display text-[42px] leading-none" style={{ color: palette.ink }}>{day}</div>
-          <div className="text-left text-[8px] tracking-[0.3em] uppercase opacity-80">
+        <div className="my-1 flex items-end gap-2">
+          <div className="font-display text-[34px] leading-none" style={{ color: palette.ink }}>{day}</div>
+          <div className="text-left text-[7px] tracking-[0.3em] uppercase opacity-80">
             <div>Décembre</div>
             <div style={{ color: palette.gold }}>2025</div>
           </div>
         </div>
         <GoldHairline color={palette.gold} />
-        <p className="font-display text-[12px]" style={{ color: palette.ink }}>{monogram} & EVENA</p>
-        <p className="mt-1 text-[7px] opacity-60 tracking-[0.3em]">DAKAR</p>
+        <p className="font-display text-[11px]" style={{ color: palette.ink }}>{monogram} & EVENA</p>
+        <p className="mt-1 text-[6px] opacity-60 tracking-[0.3em]">DAKAR</p>
       </div>
     </div>
   );
 }
 
-function TicketHorizontal({ product, palette, params, monogram }: SubProps) {
+function TicketHorizontal({ product, palette, params, monogram, imageSlot }: SubProps) {
+  const showImage = imageSlot !== "none";
   return (
     <div className="absolute inset-0 flex" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind={params.ornament} color={palette.gold} opacity={0.07} />
-      <div className="relative flex-1 p-3">
-        <p className="text-[7px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · TICKET</p>
-        <h3 className="font-display mt-1 text-[14px] leading-tight">{product.title}</h3>
-        <div className="mt-2 flex items-end gap-3">
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">DATE</div>
-            <div className="text-[10px] font-medium">12.12.25</div>
-          </div>
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">SIÈGE</div>
-            <div className="text-[10px] font-medium">A-{Math.floor(params.r1 * 99) + 1}</div>
-          </div>
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">PRIX</div>
-            <div className="text-[10px] font-medium" style={{ color: palette.gold }}>25 000 F</div>
+      <div className="relative flex flex-1 flex-col">
+        {showImage && (
+          <ImageSlot
+            mode={imageSlot}
+            palette={palette}
+            seed={params.r3}
+            className="h-[40%] w-full"
+            label="Visuel event"
+          />
+        )}
+        <div className="relative flex-1 p-3">
+          <p className="text-[7px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · TICKET</p>
+          <h3 className="font-display mt-1 text-[13px] leading-tight">{product.title}</h3>
+          <div className="mt-2 flex items-end gap-3">
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">DATE</div>
+              <div className="text-[10px] font-medium">12.12.25</div>
+            </div>
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">SIÈGE</div>
+              <div className="text-[10px] font-medium">A-{Math.floor(params.r1 * 99) + 1}</div>
+            </div>
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">PRIX</div>
+              <div className="text-[10px] font-medium" style={{ color: palette.gold }}>25 000 F</div>
+            </div>
           </div>
         </div>
       </div>
@@ -678,17 +700,27 @@ function BoardingPass({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function PromoPoster({ product, palette, params, monogram }: SubProps) {
+function PromoPoster({ product, palette, params, monogram, imageSlot }: SubProps) {
   const pct = pick(mulberry32(hashSeed(product.designSeed + "p")), [10, 20, 30, 40, 50, 70]);
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="starburst" color={palette.gold} opacity={0.12} />
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r2}
+          className="h-[42%] w-full"
+          label="Visuel produit"
+        />
+      )}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center px-3 py-2">
         <p className="text-[8px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · OFFRE</p>
-        <div className="font-display text-[44px] leading-none" style={{ color: palette.gold }}>-{pct}%</div>
+        <div className="font-display text-[36px] leading-none" style={{ color: palette.gold }}>-{pct}%</div>
         <GoldHairline color={palette.gold} />
-        <h3 className="font-display text-[12px] leading-tight">{product.title}</h3>
-        <div className="mt-2 rounded-full px-3 py-1 text-[7px] tracking-[0.3em]" style={{ background: palette.gold, color: palette.bg }}>
+        <h3 className="font-display text-[11px] leading-tight">{product.title}</h3>
+        <div className="mt-2 rounded-full px-3 py-0.5 text-[7px] tracking-[0.3em]" style={{ background: palette.gold, color: palette.bg }}>
           PROMO {monogram}
         </div>
       </div>
@@ -717,13 +749,23 @@ function LoyaltyCard({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function FestivalPoster({ product, palette, params, monogram }: SubProps) {
+function FestivalPoster({ product, palette, params, monogram, imageSlot }: SubProps) {
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="kente" color={palette.gold} opacity={0.18} />
-      <div className="relative z-10 mt-auto">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r1}
+          className="h-[58%] w-full"
+          label="Affiche artiste"
+        />
+      )}
+      <div className="relative z-10 mt-auto p-3">
         <div className="text-[7px] tracking-[0.5em]" style={{ color: palette.gold }}>EVENA · LIVE</div>
-        <h3 className="font-display text-[18px] leading-[1] mt-1" style={{ color: palette.ink }}>{product.title}</h3>
+        <h3 className="font-display text-[16px] leading-[1] mt-1" style={{ color: palette.ink }}>{product.title}</h3>
         <div className="mt-2 flex items-center gap-2 text-[7px] tracking-[0.3em]">
           <span style={{ color: palette.gold }}>12.12.25</span>
           <span className="opacity-50">·</span>
