@@ -89,10 +89,13 @@ const PALETTES = [
 
 type Palette = (typeof PALETTES)[number];
 
+export type ImageSlotMode = "placeholder" | "demo" | "none";
+
 interface Overrides {
   archetype?: Archetype;
   palette?: Partial<Palette>;
   ornament?: "kente" | "bogolan" | "geometric" | "wave" | "dots" | "starburst";
+  imageSlot?: ImageSlotMode;
 }
 
 interface Props {
@@ -104,7 +107,7 @@ interface Props {
 
 export function ProductThumbnail({ product, variantSeed, className, overrides }: Props) {
   const seedKey = (product.designSeed + (variantSeed ?? "") + (overrides ? JSON.stringify(overrides) : "")) as string;
-  const { archetype, palette, params } = useMemo(() => {
+  const { archetype, palette, params, imageSlot } = useMemo(() => {
     const rng = mulberry32(hashSeed(seedKey));
     const basePalette = PALETTES[Math.floor(rng() * PALETTES.length)];
     const palette: Palette = { ...basePalette, ...(overrides?.palette ?? {}) };
@@ -119,7 +122,8 @@ export function ProductThumbnail({ product, variantSeed, className, overrides }:
       r4: rng(),
       r5: rng(),
     };
-    return { archetype, palette, params };
+    const imageSlot: ImageSlotMode = overrides?.imageSlot ?? "none";
+    return { archetype, palette, params, imageSlot };
   }, [seedKey, product, overrides]);
 
   return (
@@ -127,7 +131,7 @@ export function ProductThumbnail({ product, variantSeed, className, overrides }:
       className={"relative w-full overflow-hidden rounded-xl bg-gradient-noir " + (className ?? "")}
       style={{ aspectRatio: aspectFor(archetype) }}
     >
-      <Composition product={product} archetype={archetype} palette={palette} params={params} />
+      <Composition product={product} archetype={archetype} palette={palette} params={params} imageSlot={imageSlot} />
     </div>
   );
 }
@@ -168,25 +172,27 @@ interface CompProps {
     monogramRot: number;
     r1: number; r2: number; r3: number; r4: number; r5: number;
   };
+  imageSlot: ImageSlotMode;
 }
 
-function Composition({ product, archetype, palette, params }: CompProps) {
+function Composition({ product, archetype, palette, params, imageSlot }: CompProps) {
   const monogram = monogramFor(product.title);
+  const sub = { product, palette, params, monogram, imageSlot };
   switch (archetype) {
-    case "invitation-portrait": return <InvitationPortrait {...{ product, palette, params, monogram }} />;
-    case "save-the-date": return <SaveTheDate {...{ product, palette, params, monogram }} />;
-    case "ticket-horizontal": return <TicketHorizontal {...{ product, palette, params, monogram }} />;
-    case "ticket-mini": return <TicketMini {...{ product, palette, params, monogram }} />;
-    case "badge-lanyard": return <BadgeLanyard {...{ product, palette, params, monogram }} />;
-    case "badge-round": return <BadgeRound {...{ product, palette, params, monogram }} />;
-    case "pass-noir-or": return <PassNoirOr {...{ product, palette, params, monogram }} />;
-    case "business-card": return <BusinessCard {...{ product, palette, params, monogram }} />;
-    case "menu-editorial": return <MenuEditorial {...{ product, palette, params, monogram }} />;
-    case "ceremony-frame": return <CeremonyFrame {...{ product, palette, params, monogram }} />;
-    case "boarding-pass": return <BoardingPass {...{ product, palette, params, monogram }} />;
-    case "promo-poster": return <PromoPoster {...{ product, palette, params, monogram }} />;
-    case "loyalty-card": return <LoyaltyCard {...{ product, palette, params, monogram }} />;
-    case "festival-poster": return <FestivalPoster {...{ product, palette, params, monogram }} />;
+    case "invitation-portrait": return <InvitationPortrait {...sub} />;
+    case "save-the-date": return <SaveTheDate {...sub} />;
+    case "ticket-horizontal": return <TicketHorizontal {...sub} />;
+    case "ticket-mini": return <TicketMini {...sub} />;
+    case "badge-lanyard": return <BadgeLanyard {...sub} />;
+    case "badge-round": return <BadgeRound {...sub} />;
+    case "pass-noir-or": return <PassNoirOr {...sub} />;
+    case "business-card": return <BusinessCard {...sub} />;
+    case "menu-editorial": return <MenuEditorial {...sub} />;
+    case "ceremony-frame": return <CeremonyFrame {...sub} />;
+    case "boarding-pass": return <BoardingPass {...sub} />;
+    case "promo-poster": return <PromoPoster {...sub} />;
+    case "loyalty-card": return <LoyaltyCard {...sub} />;
+    case "festival-poster": return <FestivalPoster {...sub} />;
   }
 }
 
@@ -201,6 +207,79 @@ interface SubProps {
   palette: Palette;
   params: CompProps["params"];
   monogram: string;
+  imageSlot: ImageSlotMode;
+}
+
+/* ---------- Image slot (placeholder OR procedural demo) ---------- */
+
+function ImageSlot({
+  mode,
+  palette,
+  seed,
+  className = "",
+  label = "Votre photo",
+}: {
+  mode: ImageSlotMode;
+  palette: Palette;
+  seed: number;
+  className?: string;
+  label?: string;
+}) {
+  if (mode === "none") return null;
+
+  if (mode === "demo") {
+    // Démo procédurale : "fausse photo" avec gradient + formes organiques
+    const angle = Math.floor(seed * 360);
+    const cx = 30 + (seed * 40);
+    const cy = 30 + ((seed * 17) % 40);
+    return (
+      <div
+        className={"relative overflow-hidden " + className}
+        style={{
+          background: `linear-gradient(${angle}deg, ${palette.accent}, ${palette.bg} 60%, ${palette.gold}40)`,
+        }}
+        aria-label="Aperçu image"
+      >
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden>
+          <defs>
+            <radialGradient id={`img-glow-${Math.floor(seed * 1e6)}`} cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor={palette.gold} stopOpacity="0.45" />
+              <stop offset="100%" stopColor={palette.bg} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx={cx} cy={cy} rx="55" ry="40" fill={`url(#img-glow-${Math.floor(seed * 1e6)})`} />
+          <circle cx={cx + 20} cy={cy + 15} r="18" fill={palette.gold} opacity="0.18" />
+          <circle cx={cx - 15} cy={cy + 25} r="10" fill={palette.ink} opacity="0.08" />
+        </svg>
+        {/* Filet or pour rappeler le cadre éditable */}
+        <div className="absolute inset-0 ring-1 ring-inset" style={{ boxShadow: `inset 0 0 0 1px ${palette.gold}30` }} />
+      </div>
+    );
+  }
+
+  // mode === "placeholder"
+  return (
+    <div
+      className={"relative flex flex-col items-center justify-center " + className}
+      style={{
+        background: `repeating-linear-gradient(45deg, ${palette.gold}08 0 6px, transparent 6px 12px)`,
+        border: `1px dashed ${palette.gold}80`,
+      }}
+      aria-label="Emplacement pour ajouter une photo"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <rect x="3" y="5" width="18" height="14" rx="1.5" stroke={palette.gold} strokeWidth="1.2" opacity="0.9" />
+        <circle cx="9" cy="10" r="1.4" fill={palette.gold} />
+        <path d="M3 17 L9 12 L13 15 L17 11 L21 16" stroke={palette.gold} strokeWidth="1.2" fill="none" />
+      </svg>
+      <div
+        className="mt-1 text-[7px] tracking-[0.3em] uppercase"
+        style={{ color: palette.gold }}
+      >
+        {label}
+      </div>
+    </div>
+  );
 }
 
 /* ---------- Background patterns (SVG) ---------- */
@@ -357,47 +436,69 @@ function InvitationPortrait({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function SaveTheDate({ product, palette, params, monogram }: SubProps) {
+function SaveTheDate({ product, palette, params, monogram, imageSlot }: SubProps) {
   const day = 1 + Math.floor(params.r1 * 28);
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="dots" color={palette.gold} opacity={0.1} />
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r4}
+          className="relative h-[45%] w-full"
+          label="Photo couple"
+        />
+      )}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center px-3 py-2">
         <p className="text-[8px] tracking-[0.4em]" style={{ color: palette.gold }}>SAVE THE DATE</p>
-        <div className="my-2 flex items-end gap-2">
-          <div className="font-display text-[42px] leading-none" style={{ color: palette.ink }}>{day}</div>
-          <div className="text-left text-[8px] tracking-[0.3em] uppercase opacity-80">
+        <div className="my-1 flex items-end gap-2">
+          <div className="font-display text-[34px] leading-none" style={{ color: palette.ink }}>{day}</div>
+          <div className="text-left text-[7px] tracking-[0.3em] uppercase opacity-80">
             <div>Décembre</div>
             <div style={{ color: palette.gold }}>2025</div>
           </div>
         </div>
         <GoldHairline color={palette.gold} />
-        <p className="font-display text-[12px]" style={{ color: palette.ink }}>{monogram} & EVENA</p>
-        <p className="mt-1 text-[7px] opacity-60 tracking-[0.3em]">DAKAR</p>
+        <p className="font-display text-[11px]" style={{ color: palette.ink }}>{monogram} & EVENA</p>
+        <p className="mt-1 text-[6px] opacity-60 tracking-[0.3em]">DAKAR</p>
       </div>
     </div>
   );
 }
 
-function TicketHorizontal({ product, palette, params, monogram }: SubProps) {
+function TicketHorizontal({ product, palette, params, monogram, imageSlot }: SubProps) {
+  const showImage = imageSlot !== "none";
   return (
     <div className="absolute inset-0 flex" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind={params.ornament} color={palette.gold} opacity={0.07} />
-      <div className="relative flex-1 p-3">
-        <p className="text-[7px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · TICKET</p>
-        <h3 className="font-display mt-1 text-[14px] leading-tight">{product.title}</h3>
-        <div className="mt-2 flex items-end gap-3">
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">DATE</div>
-            <div className="text-[10px] font-medium">12.12.25</div>
-          </div>
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">SIÈGE</div>
-            <div className="text-[10px] font-medium">A-{Math.floor(params.r1 * 99) + 1}</div>
-          </div>
-          <div>
-            <div className="text-[6px] opacity-60 tracking-[0.3em]">PRIX</div>
-            <div className="text-[10px] font-medium" style={{ color: palette.gold }}>25 000 F</div>
+      <div className="relative flex flex-1 flex-col">
+        {showImage && (
+          <ImageSlot
+            mode={imageSlot}
+            palette={palette}
+            seed={params.r3}
+            className="h-[40%] w-full"
+            label="Visuel event"
+          />
+        )}
+        <div className="relative flex-1 p-3">
+          <p className="text-[7px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · TICKET</p>
+          <h3 className="font-display mt-1 text-[13px] leading-tight">{product.title}</h3>
+          <div className="mt-2 flex items-end gap-3">
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">DATE</div>
+              <div className="text-[10px] font-medium">12.12.25</div>
+            </div>
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">SIÈGE</div>
+              <div className="text-[10px] font-medium">A-{Math.floor(params.r1 * 99) + 1}</div>
+            </div>
+            <div>
+              <div className="text-[6px] opacity-60 tracking-[0.3em]">PRIX</div>
+              <div className="text-[10px] font-medium" style={{ color: palette.gold }}>25 000 F</div>
+            </div>
           </div>
         </div>
       </div>
@@ -599,17 +700,27 @@ function BoardingPass({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function PromoPoster({ product, palette, params, monogram }: SubProps) {
+function PromoPoster({ product, palette, params, monogram, imageSlot }: SubProps) {
   const pct = pick(mulberry32(hashSeed(product.designSeed + "p")), [10, 20, 30, 40, 50, 70]);
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="starburst" color={palette.gold} opacity={0.12} />
-      <div className="relative z-10 flex h-full flex-col items-center justify-center text-center">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r2}
+          className="h-[42%] w-full"
+          label="Visuel produit"
+        />
+      )}
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center px-3 py-2">
         <p className="text-[8px] tracking-[0.4em]" style={{ color: palette.gold }}>EVENA · OFFRE</p>
-        <div className="font-display text-[44px] leading-none" style={{ color: palette.gold }}>-{pct}%</div>
+        <div className="font-display text-[36px] leading-none" style={{ color: palette.gold }}>-{pct}%</div>
         <GoldHairline color={palette.gold} />
-        <h3 className="font-display text-[12px] leading-tight">{product.title}</h3>
-        <div className="mt-2 rounded-full px-3 py-1 text-[7px] tracking-[0.3em]" style={{ background: palette.gold, color: palette.bg }}>
+        <h3 className="font-display text-[11px] leading-tight">{product.title}</h3>
+        <div className="mt-2 rounded-full px-3 py-0.5 text-[7px] tracking-[0.3em]" style={{ background: palette.gold, color: palette.bg }}>
           PROMO {monogram}
         </div>
       </div>
@@ -638,13 +749,23 @@ function LoyaltyCard({ product, palette, params, monogram }: SubProps) {
   );
 }
 
-function FestivalPoster({ product, palette, params, monogram }: SubProps) {
+function FestivalPoster({ product, palette, params, monogram, imageSlot }: SubProps) {
+  const showImage = imageSlot !== "none";
   return (
-    <div className="absolute inset-0 flex flex-col p-3" style={{ background: palette.bg, color: palette.ink }}>
+    <div className="absolute inset-0 flex flex-col" style={{ background: palette.bg, color: palette.ink }}>
       <Pattern kind="kente" color={palette.gold} opacity={0.18} />
-      <div className="relative z-10 mt-auto">
+      {showImage && (
+        <ImageSlot
+          mode={imageSlot}
+          palette={palette}
+          seed={params.r1}
+          className="h-[58%] w-full"
+          label="Affiche artiste"
+        />
+      )}
+      <div className="relative z-10 mt-auto p-3">
         <div className="text-[7px] tracking-[0.5em]" style={{ color: palette.gold }}>EVENA · LIVE</div>
-        <h3 className="font-display text-[18px] leading-[1] mt-1" style={{ color: palette.ink }}>{product.title}</h3>
+        <h3 className="font-display text-[16px] leading-[1] mt-1" style={{ color: palette.ink }}>{product.title}</h3>
         <div className="mt-2 flex items-center gap-2 text-[7px] tracking-[0.3em]">
           <span style={{ color: palette.gold }}>12.12.25</span>
           <span className="opacity-50">·</span>

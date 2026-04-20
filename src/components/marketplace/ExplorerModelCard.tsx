@@ -58,9 +58,27 @@ function motifToOrnament(motif: string): "kente" | "bogolan" | "geometric" | "wa
   return "geometric";
 }
 
+// Familles qui supportent une zone image (affiche / photo).
+const IMAGE_SLOT_FAMILIES = new Set<Family>([
+  "festival-poster",
+  "promo-poster",
+  "save-the-date",
+  "ticket-horizontal",
+  "ticket-stub",
+  "sport-ticket",
+  "travel-ticket",
+  "invitation-editorial",
+]);
+
+function imageSlotMode(model: ModelSpec): "placeholder" | "demo" | "none" {
+  if (!IMAGE_SLOT_FAMILIES.has(model.family)) return "none";
+  // Alterne placeholder/démo selon le seed → certaines variantes "édition", d'autres "rendu fini".
+  return model.variantIndex % 2 === 0 ? "demo" : "placeholder";
+}
+
 /**
  * Carte de modèle d'explorer.
- * Force archetype + palette + ornement depuis le ModelSpec
+ * Force archetype + palette + ornement + zone image depuis le ModelSpec
  * pour révéler la diversité du moteur EVENA.
  */
 export function ExplorerModelCard({ model }: Props) {
@@ -68,6 +86,7 @@ export function ExplorerModelCard({ model }: Props) {
   const virtualProduct = { ...baseProduct, designSeed: model.designSeed };
   const archetype = FAMILY_TO_ARCHETYPE[model.family];
   const ornament = motifToOrnament(model.motif);
+  const imageSlot = imageSlotMode(model);
 
   return (
     <Link
@@ -81,6 +100,7 @@ export function ExplorerModelCard({ model }: Props) {
           overrides={{
             archetype,
             ornament,
+            imageSlot,
             palette: {
               bg: model.palette.bg,
               ink: model.palette.ink,
