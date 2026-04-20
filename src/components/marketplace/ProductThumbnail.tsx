@@ -172,25 +172,27 @@ interface CompProps {
     monogramRot: number;
     r1: number; r2: number; r3: number; r4: number; r5: number;
   };
+  imageSlot: ImageSlotMode;
 }
 
-function Composition({ product, archetype, palette, params }: CompProps) {
+function Composition({ product, archetype, palette, params, imageSlot }: CompProps) {
   const monogram = monogramFor(product.title);
+  const sub = { product, palette, params, monogram, imageSlot };
   switch (archetype) {
-    case "invitation-portrait": return <InvitationPortrait {...{ product, palette, params, monogram }} />;
-    case "save-the-date": return <SaveTheDate {...{ product, palette, params, monogram }} />;
-    case "ticket-horizontal": return <TicketHorizontal {...{ product, palette, params, monogram }} />;
-    case "ticket-mini": return <TicketMini {...{ product, palette, params, monogram }} />;
-    case "badge-lanyard": return <BadgeLanyard {...{ product, palette, params, monogram }} />;
-    case "badge-round": return <BadgeRound {...{ product, palette, params, monogram }} />;
-    case "pass-noir-or": return <PassNoirOr {...{ product, palette, params, monogram }} />;
-    case "business-card": return <BusinessCard {...{ product, palette, params, monogram }} />;
-    case "menu-editorial": return <MenuEditorial {...{ product, palette, params, monogram }} />;
-    case "ceremony-frame": return <CeremonyFrame {...{ product, palette, params, monogram }} />;
-    case "boarding-pass": return <BoardingPass {...{ product, palette, params, monogram }} />;
-    case "promo-poster": return <PromoPoster {...{ product, palette, params, monogram }} />;
-    case "loyalty-card": return <LoyaltyCard {...{ product, palette, params, monogram }} />;
-    case "festival-poster": return <FestivalPoster {...{ product, palette, params, monogram }} />;
+    case "invitation-portrait": return <InvitationPortrait {...sub} />;
+    case "save-the-date": return <SaveTheDate {...sub} />;
+    case "ticket-horizontal": return <TicketHorizontal {...sub} />;
+    case "ticket-mini": return <TicketMini {...sub} />;
+    case "badge-lanyard": return <BadgeLanyard {...sub} />;
+    case "badge-round": return <BadgeRound {...sub} />;
+    case "pass-noir-or": return <PassNoirOr {...sub} />;
+    case "business-card": return <BusinessCard {...sub} />;
+    case "menu-editorial": return <MenuEditorial {...sub} />;
+    case "ceremony-frame": return <CeremonyFrame {...sub} />;
+    case "boarding-pass": return <BoardingPass {...sub} />;
+    case "promo-poster": return <PromoPoster {...sub} />;
+    case "loyalty-card": return <LoyaltyCard {...sub} />;
+    case "festival-poster": return <FestivalPoster {...sub} />;
   }
 }
 
@@ -205,6 +207,79 @@ interface SubProps {
   palette: Palette;
   params: CompProps["params"];
   monogram: string;
+  imageSlot: ImageSlotMode;
+}
+
+/* ---------- Image slot (placeholder OR procedural demo) ---------- */
+
+function ImageSlot({
+  mode,
+  palette,
+  seed,
+  className = "",
+  label = "Votre photo",
+}: {
+  mode: ImageSlotMode;
+  palette: Palette;
+  seed: number;
+  className?: string;
+  label?: string;
+}) {
+  if (mode === "none") return null;
+
+  if (mode === "demo") {
+    // Démo procédurale : "fausse photo" avec gradient + formes organiques
+    const angle = Math.floor(seed * 360);
+    const cx = 30 + (seed * 40);
+    const cy = 30 + ((seed * 17) % 40);
+    return (
+      <div
+        className={"relative overflow-hidden " + className}
+        style={{
+          background: `linear-gradient(${angle}deg, ${palette.accent}, ${palette.bg} 60%, ${palette.gold}40)`,
+        }}
+        aria-label="Aperçu image"
+      >
+        <svg className="absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden>
+          <defs>
+            <radialGradient id={`img-glow-${Math.floor(seed * 1e6)}`} cx="50%" cy="50%" r="60%">
+              <stop offset="0%" stopColor={palette.gold} stopOpacity="0.45" />
+              <stop offset="100%" stopColor={palette.bg} stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx={cx} cy={cy} rx="55" ry="40" fill={`url(#img-glow-${Math.floor(seed * 1e6)})`} />
+          <circle cx={cx + 20} cy={cy + 15} r="18" fill={palette.gold} opacity="0.18" />
+          <circle cx={cx - 15} cy={cy + 25} r="10" fill={palette.ink} opacity="0.08" />
+        </svg>
+        {/* Filet or pour rappeler le cadre éditable */}
+        <div className="absolute inset-0 ring-1 ring-inset" style={{ boxShadow: `inset 0 0 0 1px ${palette.gold}30` }} />
+      </div>
+    );
+  }
+
+  // mode === "placeholder"
+  return (
+    <div
+      className={"relative flex flex-col items-center justify-center " + className}
+      style={{
+        background: `repeating-linear-gradient(45deg, ${palette.gold}08 0 6px, transparent 6px 12px)`,
+        border: `1px dashed ${palette.gold}80`,
+      }}
+      aria-label="Emplacement pour ajouter une photo"
+    >
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <rect x="3" y="5" width="18" height="14" rx="1.5" stroke={palette.gold} strokeWidth="1.2" opacity="0.9" />
+        <circle cx="9" cy="10" r="1.4" fill={palette.gold} />
+        <path d="M3 17 L9 12 L13 15 L17 11 L21 16" stroke={palette.gold} strokeWidth="1.2" fill="none" />
+      </svg>
+      <div
+        className="mt-1 text-[7px] tracking-[0.3em] uppercase"
+        style={{ color: palette.gold }}
+      >
+        {label}
+      </div>
+    </div>
+  );
 }
 
 /* ---------- Background patterns (SVG) ---------- */
