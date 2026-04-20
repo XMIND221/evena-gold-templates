@@ -107,7 +107,7 @@ interface Props {
 
 export function ProductThumbnail({ product, variantSeed, className, overrides }: Props) {
   const seedKey = (product.designSeed + (variantSeed ?? "") + (overrides ? JSON.stringify(overrides) : "")) as string;
-  const { archetype, palette, params } = useMemo(() => {
+  const { archetype, palette, params, imageSlot } = useMemo(() => {
     const rng = mulberry32(hashSeed(seedKey));
     const basePalette = PALETTES[Math.floor(rng() * PALETTES.length)];
     const palette: Palette = { ...basePalette, ...(overrides?.palette ?? {}) };
@@ -122,7 +122,8 @@ export function ProductThumbnail({ product, variantSeed, className, overrides }:
       r4: rng(),
       r5: rng(),
     };
-    return { archetype, palette, params };
+    const imageSlot: ImageSlotMode = overrides?.imageSlot ?? "none";
+    return { archetype, palette, params, imageSlot };
   }, [seedKey, product, overrides]);
 
   return (
@@ -130,7 +131,7 @@ export function ProductThumbnail({ product, variantSeed, className, overrides }:
       className={"relative w-full overflow-hidden rounded-xl bg-gradient-noir " + (className ?? "")}
       style={{ aspectRatio: aspectFor(archetype) }}
     >
-      <Composition product={product} archetype={archetype} palette={palette} params={params} />
+      <Composition product={product} archetype={archetype} palette={palette} params={params} imageSlot={imageSlot} />
     </div>
   );
 }
